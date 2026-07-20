@@ -1,0 +1,16 @@
+{
+  "name": "tmg",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^26.0.0",
+    "dotenv": "^17.4.2",
+    "mailosaur": "^11.1.1"
+  }
+}
