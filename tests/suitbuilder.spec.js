@@ -153,7 +153,7 @@ test("Total price increases as add-ons are selected", async ({ page }) => {
 });
 
 test("Buy Now stays disabled regardless of options selected until fit quiz is complete", async ({ page }) => {
-  // select tie + belt to prove gating is independent of configuration
+  
   await openTieAccordionAndSelectFirstSwatch(page);
   await openBeltAccordionAndSelectFirstSwatch(page);
 
