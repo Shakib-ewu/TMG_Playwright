@@ -69,7 +69,7 @@ async function openBeltAccordionAndSelectFirstSwatch(page) {
 }
 
 async function completeFitQuiz(page) {
-  await page.getByRole('button', { name: /Start Fit Quiz/i }).first().click();
+  await page.getByRole('button', { name: /Get Sized/i }).first().click();
 
   const emailInput = page.locator("input[name='fitQizEmail']");
   await emailInput.fill("test123@example.com");
@@ -161,7 +161,7 @@ test("Buy Now stays disabled regardless of options selected until fit quiz is co
     page.getByRole('button', { name: /complete your fit quiz first/i }).first()
   ).toBeVisible();
 
-  await expect(page.getByRole('button', { name: /buy now/i })).toBeDisabled(); // TODO
+  await expect(page.getByRole('button', { name: /Buy Swatches/i })).toBeDisabled(); // TODO
 });
 
 test.skip("Save The Look persists current configuration", async ({ page }) => {
@@ -189,7 +189,7 @@ test("End-to-end: configure suit, complete fit quiz, and buy and checkout", asyn
 
   await completeFitQuiz(page);
 
-  const buyNowBtn = page.getByRole('button', { name: 'Buy Now' });
+  const buyNowBtn = page.getByRole('button', { name: 'Buy Swatches' });
 
   await expect(buyNowBtn).toBeEnabled({ timeout: 20000 });
 
