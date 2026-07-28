@@ -86,7 +86,21 @@ async function completeFitQuiz(page) {
   await page.locator("img[alt='ROUND image']").click({ force: true });
   await page.locator("img[alt='FLAT image']").click({ force: true });
 
-  await page.getByRole('button', { name: 'Submit' }).click();
+  await page.locator("#measurement_jean_waist").fill("40");
+  await page.locator("#measurement_waist").fill("46");
+  await page.locator("#measurement_suit_size").fill("46R");
+  await page.locator("#measurement_shirt_size").fill("36");
+  await page.locator("#measurement_waist").fill("46");
+  await page.locator("#measurement_chest_size").fill("46");
+  await page.locator("#measurement_neck_size").fill("20");
+  await page.locator("#measurement_sleeve_size").fill("36");
+  await page.locator("#measurement_tshirt_size").fill("36");
+  await page.locator("#event_date").fill("2027-12-31");
+  
+
+
+
+  await page.getByRole('button', { name: 'Submit measurements' }).click();
 }
 
 async function loginWithOtp(page, mailosaur, serverId) {
@@ -179,7 +193,7 @@ test.skip("Save The Look persists current configuration", async ({ page }) => {
    await page.getByRole('button', { name: /save the look/i }).click();
 });
 
-test("End-to-end: configure suit, complete fit quiz, and buy and checkout", async ({ page }) => {
+test.only("End-to-end: configure suit, complete fit quiz, and buy and checkout", async ({ page }) => {
   test.setTimeout(120000);
 
   const suitSwatches = await getSuitSwatches(page);
