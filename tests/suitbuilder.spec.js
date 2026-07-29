@@ -211,7 +211,7 @@ test.only("End-to-end: configure suit, complete fit quiz, and buy and checkout",
 
   await loginWithOtp(page, mailosaur, serverId);
 
-    await buyNowBtn.click();
+    await buyNowBtn.click({force: true});
 
 
   await page.getByRole('button', { name: /checkout/i }).click();

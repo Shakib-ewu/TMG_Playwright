@@ -5,7 +5,7 @@
       "value": "US",
       "domain": "the-modern-groom-dev-bcbxaupc.myshopify.com",
       "path": "/",
-      "expires": 1816755600.670275,
+      "expires": 1816843508.949095,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
@@ -15,81 +15,61 @@
       "value": "USD",
       "domain": "the-modern-groom-dev-bcbxaupc.myshopify.com",
       "path": "/",
-      "expires": 1786429201.316299,
+      "expires": 1786517109.147866,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "_shopify_y",
-      "value": "7f03e40c-5a45-466b-af1e-85db6b467930",
+      "value": "b91d952a-e7df-47e2-a279-04934685b69d",
       "domain": ".the-modern-groom-dev-bcbxaupc.myshopify.com",
       "path": "/",
-      "expires": 1816777201.31637,
+      "expires": 1816865109.148049,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "_shopify_s",
-      "value": "05e8fbfa-3091-49b1-a2f4-5d8962769179",
+      "value": "6b9a2067-6b38-4df4-9ac7-818ebd0ad2cb",
       "domain": ".the-modern-groom-dev-bcbxaupc.myshopify.com",
       "path": "/",
-      "expires": 1785221401.316411,
+      "expires": 1785309309.148225,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "_shopify_analytics",
-      "value": ":AZ-nYUSBAAEAkYHgWruTCrrfp2hdzrg36Zi-6-fuaXpPVnqCPjjhS0U5NwVeFpWd2KgQ8iU_7RVCuby2AdRAFJXo8oLuC7DSYICnJpL3M2DjgjYVsKJVHITeuHrFoFr2EFQ5w138CsKqXzjg6CnVTXvekA0:",
+      "value": ":AZ-snqbKAAEA8KRMc_M789k3vXETFy8nN4EvsKiIPPat21pv_yVBRJ8bU6s22rvNANz0BoTIxaqJuFY5Lg5fL0TInnY7LwMjiJay8Txfc7CSv0GV7aU8ikZlvdD-H_GUeA1ks65Q7_gzzL-YhWsY7iU6uIk:",
       "domain": "the-modern-groom-dev-bcbxaupc.myshopify.com",
       "path": "/",
-      "expires": 1816755597.618279,
+      "expires": 1816843506.075099,
       "httpOnly": true,
       "secure": true,
       "sameSite": "Lax"
     },
     {
       "name": "_shopify_marketing",
-      "value": ":AZ-nYUSBAAEAD1VS2CSaIR0HNcH7XbkpYySiAlsOBtzAHCgrzRW2Zo-75ZIBAMWZksdX4Ltza6UCeIhSyYbiIucplBWXVixMuD7fZdZkf_WA63AGPkajnSkpMMinuHpdsbSS:",
+      "value": ":AZ-snqbKAAEAPMtuwYoIizZgxeTjbuX2PskKHT99G0oaylNwRKKvhPEtYaD3XahkqqoDmZ_CIMIGipAD4VGywTm6yV4ovH3fPk9OiQlRx_QjNfYuys6mP19qLkVNlsX6YqlZ:",
       "domain": "the-modern-groom-dev-bcbxaupc.myshopify.com",
       "path": "/",
-      "expires": 1816755597.618297,
+      "expires": 1816843506.075119,
       "httpOnly": true,
       "secure": true,
       "sameSite": "Lax"
     },
     {
       "name": "_shopify_essential",
-      "value": ":AZ-nYUNEAAEApkw09aoROBZkr_yNIIf3hHAg_vukMh1TQFtp4htU5YTMDBILfI8x7Mb3WDsXcA79IUC72MiWuKea43LCUI-pv8HzqF7caBEX0FoRL59U97Z_zQjF7awWz7_Le73NgXetMHqWHlzj_0lvSrw09sKflQyV3PDaJBJqbKcYXuJnrenRRv8kSdpI2qKF5SPOdKJ2pYVMZz0lT10CPhl1FXrzhrkDmRbToqeG9n0c0frDV2P1VScLco0E9XGUeGzp0n4MmqrawEpBlm41AFnURhcDyyF6LNUgd77egTuMLMl0NUwEEyajxXWOvlXzVVxG-5As8xUhCh_9kBg6GQ6b-CYTpUb8RBbzUD97WFToalibtST5Dv1jf7rpMeVOb9BZnD0flz7fYIwRYuCzrff_QbmHLHeJDK7X0H-btxD_0bHdKkL9C1C4erzDfUSROOX3Ed50yU7U6rotQpkNPnIn2BMCaBlmEqqzDPg9_8qqTZT1N7RKc1rjCmc-4gUswAD9h46i8TnMxQAqz0K7o6SS8qJuUvBIgfJEGAQekWyvfXbldVLDI9EUaY8P6WyCWWi_JXw3BvX0OUqu0N9al54tn3H72RinjCCwIvntBNsrF_Cr9qRQNyLMxiy1yJPyFTLuS4g4c8UVymGFdnkvvkaz3RU:",
+      "value": ":AZ-snqW-AAEAf06WfKxyr00p6xoq9HBHmscFgpG3_DqNRc4W5gVTU4wI9kyMe280viU-m2r3RUzjs6CrFQK13RVCyMOWFqTxu6ubFksybS1At1Wmica9wRRkaHak0iq_bV6IKxGE0gmRBOCdW2Sjx6HpICMtS1add5DoJuoexlmTM95C-baUxpKajo4buB3FZ9SSwdCys3BqE2TMV64v_x68TJBEb_9oXCD1otJzEC68H7I-FaAZE-kJXxWW9mgqvJDaacnWlBKHiHf8cUeDrvzt7merLngRKbjBY4I3TznQzycGM_xhAhcQolgZ8JDQJI5Nf9Qrs8ktj2CsmxJgri-i2FpstwZ-aYfMDHyYOhaOjhh2Mx2W9fxhHYMyg6KWmCXPIs2jrmUHr4cJ6xtER73umil3pxHbM1oTnZU4opmqm8HLM10IBpLf4JxebIkZ6PRILnsAiI-oDGSVc7cIqpTfc9_KZJ8AsJEW5_bH6WIsHXJwX8Usb_BDCtJM_iOHuSlJoXM4vz5MXPbL7kXXxChScTto1_SdJRqv3-MiO6_QS0Ic2uF8LOsp13Nr5DpDaOqMNNyz6uRHuvgMNumORJzk4SgxBznXHyfaPThQA59oDHdyvbbS1rd23Owmy7TkcPLSxfqGkrGk96ei:",
       "domain": "the-modern-groom-dev-bcbxaupc.myshopify.com",
       "path": "/",
-      "expires": 1816755601.316444,
+      "expires": 1816843509.557585,
       "httpOnly": true,
       "secure": true,
       "sameSite": "Lax"
-    },
-    {
-      "name": "_shop_app_essential",
-      "value": ":AZ-nYVO7AAEAXDek0zpF9jK8NB9wBlzf0LwXfInzu-HuHD0c47PS6Ge6U_fG7AQCCrJdof5uG06BfhLpGFr6SGDRGff20w3GHrnR3feDrqPymXeuLBGXaMmoXJpc:",
-      "domain": ".shop.app",
-      "path": "/",
-      "expires": 1816755601.522031,
-      "httpOnly": true,
-      "secure": true,
-      "sameSite": "None"
     }
   ],
-  "origins": [
-    {
-      "origin": "https://the-modern-groom-dev-bcbxaupc.myshopify.com",
-      "localStorage": [
-        {
-          "name": "signInWithShop:cartSyncTransferAttemptedAt",
-          "value": "1785219601169"
-        }
-      ]
-    }
-  ]
+  "origins": []
 }
