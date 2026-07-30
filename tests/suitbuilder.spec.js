@@ -193,7 +193,7 @@ test.skip("Save The Look persists current configuration", async ({ page }) => {
    await page.getByRole('button', { name: /save the look/i }).click();
 });
 
-test.only("End-to-end: configure suit, complete fit quiz, and buy and checkout", async ({ page }) => {
+test("End-to-end: configure suit, complete fit quiz, and buy and checkout", async ({ page }) => {
   test.setTimeout(120000);
 
   const suitSwatches = await getSuitSwatches(page);
