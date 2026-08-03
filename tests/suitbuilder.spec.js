@@ -96,9 +96,6 @@ async function completeFitQuiz(page) {
   await page.locator("#measurement_sleeve_size").fill("36");
   await page.locator("#measurement_tshirt_size").fill("36");
   await page.locator("#event_date").fill("2027-12-31");
-  
-
-
 
   await page.getByRole('button', { name: 'Submit measurements' }).click();
 }
@@ -211,7 +208,7 @@ test("End-to-end: configure suit, complete fit quiz, and buy and checkout", asyn
 
   await loginWithOtp(page, mailosaur, serverId);
 
-    await buyNowBtn.click({force: true});
+  await buyNowBtn.click({force: true});
 
 
   await page.getByRole('button', { name: /checkout/i }).click();
