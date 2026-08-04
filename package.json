@@ -2,7 +2,15 @@
   "name": "tmg",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {},
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:suitbuilder": "playwright test --project=suitbuilder",
+    "test:event": "playwright test --project=event",
+    "auth:storefront": "playwright test --project=setup-storefront",
+    "auth:event": "playwright test --project=setup-event",
+    "report": "playwright show-report"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
