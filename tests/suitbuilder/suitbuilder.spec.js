@@ -58,7 +58,7 @@ test.skip('Save The Look persists current configuration', async ({ suitBuilderPa
   await suitBuilderPage.saveTheLookButton().click();
 });
 
-test.only('End-to-end: configure suit, complete fit quiz, and buy and checkout', async ({
+test('End-to-end: configure suit, complete fit quiz, and buy and checkout', async ({
   suitBuilderPage,
   page,
 }) => {
