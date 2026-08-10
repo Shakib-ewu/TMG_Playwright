@@ -3,7 +3,7 @@ import { test } from '@playwright/test';
 import { env } from '../../src/config/env.js';
 import { unlockStorefront } from '../../src/helpers/mailosaur.js';
 
-function hasExistingSession(filePath) {
+function hasSession(filePath) {
   try {
     const state = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     return Array.isArray(state.cookies) && state.cookies.length > 0;
@@ -13,9 +13,11 @@ function hasExistingSession(filePath) {
 }
 
 test('Save storefront session', async ({ page }) => {
+  // Skip if session already exists. Force refresh:
+  // PowerShell: $env:FORCE_AUTH="1"; npm run auth:storefront
   test.skip(
-    hasExistingSession(env.storefrontSessionPath) && !process.env.FORCE_AUTH,
-    'Storefront session already exists. Set FORCE_AUTH=1 to regenerate.'
+    hasSession(env.storefrontSessionPath) && !process.env.FORCE_AUTH,
+    'Session already exists. Run auth:storefront only when needed.'
   );
 
   await page.goto(env.storeBaseUrl, {

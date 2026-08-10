@@ -68,7 +68,7 @@ test('End-to-end: configure suit, complete fit quiz, and buy and checkout', asyn
   await suitSwatches[0].click();
 
   await suitBuilderPage.openTieAccordionAndSelectFirstSwatch();
-  await suitBuilderPage.completeFitQuiz();
+  await suitBuilderPage.completeFitQuizAndBuy();
 
   await loginWithOtp(page, { prefix: 'suitbuilder' });
   await suitBuilderPage.primaryBuyButton().click({ force: true });

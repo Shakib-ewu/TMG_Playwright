@@ -2,9 +2,6 @@
 import { defineConfig } from '@playwright/test';
 import { env } from './src/config/env.js';
 
-/**
- * @see https://playwright.dev/docs/test-configuration
- */
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -29,12 +26,7 @@ export default defineConfig({
       testMatch: '**/auth/save-storefront-session.spec.js',
     },
     {
-      name: 'setup-event',
-      testMatch: '**/auth/save-event-session.spec.js',
-    },
-    {
       name: 'suitbuilder',
-      dependencies: ['setup-storefront'],
       testMatch: '**/suitbuilder/**/*.spec.js',
       use: {
         browserName: 'chromium',
@@ -44,12 +36,11 @@ export default defineConfig({
     },
     {
       name: 'event',
-      dependencies: ['setup-event'],
       testMatch: '**/event/**/*.spec.js',
       use: {
         browserName: 'chromium',
         baseURL: env.storeBaseUrl,
-        storageState: env.eventSessionPath,
+        storageState: env.storefrontSessionPath,
       },
     },
   ],

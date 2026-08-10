@@ -113,9 +113,31 @@ export class SuitBuilderPage {
     await expect(submitBtn).toBeEnabled({ timeout: 10000 });
     await submitBtn.scrollIntoViewIfNeeded();
     await submitBtn.click();
-
     await this.page.waitForTimeout(5000);
+  }
+
+  /** Suit Builder path: submit fit quiz then click Buy Swatches */
+  async completeFitQuizAndBuy() {
+    await this.completeFitQuiz();
     await this.primaryBuyButton().click();
+  }
+
+  /**
+   * Minimal save-look path used from My Looks → Create First Look.
+   * @param {string} lookName
+   */
+  async createAndSaveLook(lookName = `Auto Look ${Date.now()}`) {
+    const swatches = await this.getSuitSwatches();
+    if (swatches.length) {
+      await swatches[0].click();
+    }
+    const nameInput = this.lookNameInput();
+    if (await nameInput.isVisible().catch(() => false)) {
+      await nameInput.fill(lookName);
+    }
+    await this.saveTheLookButton().click();
+    await this.page.waitForTimeout(3000);
+    return lookName;
   }
 
   async #selectFitOption(imgSelector) {
