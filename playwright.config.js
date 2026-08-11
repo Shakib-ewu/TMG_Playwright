@@ -1,6 +1,20 @@
 // @ts-check
+import fs from 'fs';
 import { defineConfig } from '@playwright/test';
 import { env } from './src/config/env.js';
+
+/** Prefer saved Event login session; fall back to storefront password session */
+function eventStorageState() {
+  try {
+    const state = JSON.parse(fs.readFileSync(env.eventSessionPath, 'utf8'));
+    if (Array.isArray(state.cookies) && state.cookies.length > 0) {
+      return env.eventSessionPath;
+    }
+  } catch {
+    // ignore
+  }
+  return env.storefrontSessionPath;
+}
 
 export default defineConfig({
   testDir: './tests',
@@ -40,7 +54,7 @@ export default defineConfig({
       use: {
         browserName: 'chromium',
         baseURL: env.storeBaseUrl,
-        storageState: env.storefrontSessionPath,
+        storageState: eventStorageState(),
       },
     },
   ],
