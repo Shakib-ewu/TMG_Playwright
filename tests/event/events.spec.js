@@ -12,8 +12,8 @@ function randomEventDate() {
   const dd = String(date.getDate()).padStart(2, '0');
   const yyyy = date.getFullYear();
   return {
-    display: `${mm}/${dd}/${yyyy}`, // mm/dd/yyyy
-    iso: `${yyyy}-${mm}-${dd}`, // for input[type=date]
+    display: `${mm}/${dd}/${yyyy}`, 
+    iso: `${yyyy}-${mm}-${dd}`,
   };
 }
 
