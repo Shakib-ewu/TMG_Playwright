@@ -11,6 +11,7 @@ function randomEventDate() {
   const mm = String(date.getMonth() + 1).padStart(2, '0');
   const dd = String(date.getDate()).padStart(2, '0');
   const yyyy = date.getFullYear();
+
   return {
     display: `${mm}/${dd}/${yyyy}`, 
     iso: `${yyyy}-${mm}-${dd}`,
@@ -58,7 +59,7 @@ test('My Events → Mailosaur sign-in', async ({ page, context, suitBuilderPage 
     console.log(`Event login session saved → ${env.eventSessionPath}`);
   }
 
-  // Pause so you can see My Events after login
+
   await page.waitForTimeout(6000);
 
   await expect(page.getByRole('tab', { name: 'Events' })).toBeVisible({ timeout: 30000 });
