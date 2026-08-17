@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { env } from '../../src/config/env.js';
 import { unlockStorefront } from '../../src/helpers/mailosaur.js';
 
@@ -25,6 +25,11 @@ test('Save storefront session', async ({ page }) => {
     timeout: 60000,
   });
   await unlockStorefront(page);
+
+  // Confirm the unlock stuck before saving, otherwise every test lands on /password
+  await page.goto(env.storeBaseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  expect(page.url()).not.toContain('/password');
+
   await page.context().storageState({ path: env.storefrontSessionPath });
   console.log(`Storefront session saved to ${env.storefrontSessionPath}`);
 });

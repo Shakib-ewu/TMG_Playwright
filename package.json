@@ -8,6 +8,7 @@
     "test:suitbuilder": "playwright test --project=suitbuilder",
     "test:event": "playwright test --project=event",
     "auth:storefront": "playwright test --project=setup-storefront",
+    "auth:event": "playwright test --project=setup-event",
     "report": "playwright show-report"
   },
   "keywords": [],

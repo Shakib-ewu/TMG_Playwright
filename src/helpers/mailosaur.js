@@ -34,10 +34,19 @@ export async function loginWithOtp(page, options = {}) {
   return testEmail;
 }
 
+/** Enters the store password when Shopify redirects to /password. Returns true if it unlocked. */
 export async function unlockStorefront(page, password = env.storePassword) {
-  const passwordInput = page.locator('#password');
-  if (await passwordInput.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await passwordInput.fill(password);
-    await page.getByRole('button', { name: 'Enter' }).click();
+  if (!page.url().includes('/password')) {
+    return false;
   }
+
+  // isVisible() is an instant check, so wait explicitly for the form to render
+  const passwordInput = page.locator('#password');
+  await passwordInput.waitFor({ state: 'visible', timeout: 15000 });
+  await passwordInput.fill(password);
+  await page.getByRole('button', { name: 'Enter' }).click();
+
+  // The password cookie is only set once this navigation completes
+  await page.waitForURL((url) => !url.pathname.includes('/password'), { timeout: 30000 });
+  return true;
 }

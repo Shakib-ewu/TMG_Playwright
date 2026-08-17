@@ -40,6 +40,15 @@ export default defineConfig({
       testMatch: '**/auth/save-storefront-session.spec.js',
     },
     {
+      name: 'setup-event',
+      testMatch: '**/auth/save-event-session.spec.js',
+      use: {
+        browserName: 'chromium',
+        baseURL: env.storeBaseUrl,
+        storageState: env.storefrontSessionPath,
+      },
+    },
+    {
       name: 'suitbuilder',
       testMatch: '**/suitbuilder/**/*.spec.js',
       use: {

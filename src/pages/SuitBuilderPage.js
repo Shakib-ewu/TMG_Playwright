@@ -90,13 +90,8 @@ export class SuitBuilderPage {
     await accordions.nth(1).click();
   }
 
-  async completeFitQuiz() {
-    await this.page.getByRole('button', { name: /Get Sized/i }).first().click();
-
-    const emailInput = this.page.locator("input[name='fitQizEmail']");
-    await emailInput.waitFor({ state: 'visible', timeout: 20000 });
-    await emailInput.fill('test123@example.com');
-
+  /** Measurement fields shared by the Suit Builder quiz and the event Get Sized modal */
+  async fillMeasurements() {
     await this.page.locator('#measurement_age').fill('60');
     await this.page.getByRole('radio', { name: 'Male', exact: true }).click({ force: true });
     await this.page.locator('#measurement_weight').fill('175');
@@ -107,9 +102,22 @@ export class SuitBuilderPage {
     await this.#selectFitOption("img[alt='Lean icon']");
     await this.#selectFitOption("img[alt='ROUND image']");
     await this.#selectFitOption("img[alt='FLAT image']");
+  }
 
+  submitMeasurementsButton() {
+    return this.page.getByRole('button', { name: 'Submit measurements' });
+  }
 
-    const submitBtn = this.page.getByRole('button', { name: 'Submit measurements' });
+  async completeFitQuiz() {
+    await this.page.getByRole('button', { name: /Get Sized/i }).first().click();
+
+    const emailInput = this.page.locator("input[name='fitQizEmail']");
+    await emailInput.waitFor({ state: 'visible', timeout: 20000 });
+    await emailInput.fill('test123@example.com');
+
+    await this.fillMeasurements();
+
+    const submitBtn = this.submitMeasurementsButton();
     await expect(submitBtn).toBeEnabled({ timeout: 10000 });
     await submitBtn.scrollIntoViewIfNeeded();
     await submitBtn.click();
