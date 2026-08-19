@@ -121,7 +121,7 @@ test('My Events → create look and event', async ({ page, suitBuilderPage }) =>
   await page.locator('#measurement_jean_waist').fill('44');
   await suitBuilderPage.submitMeasurementsButton().click();
 
-  // Scene 4 — Add to Cart, then checkout
+  // Scene 4 — Event owner suit Add to Cart, then checkout
   const addToCart = myCard.locator('.v2-add-to-cart-btn');
   await expect(addToCart).toBeVisible({ timeout: 60000 });
   await addToCart.click();
