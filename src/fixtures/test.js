@@ -1,4 +1,5 @@
 import { test as base, expect } from '@playwright/test';
+import { EventsPage } from '../pages/EventsPage.js';
 import { SuitBuilderPage } from '../pages/SuitBuilderPage.js';
 import { unlockStorefront } from '../helpers/mailosaur.js';
 import { env } from '../config/env.js';
@@ -21,6 +22,10 @@ export const test = base.extend({
 
   suitBuilderPage: async ({ page }, use) => {
     await use(new SuitBuilderPage(page));
+  },
+
+  eventsPage: async ({ page }, use) => {
+    await use(new EventsPage(page));
   },
 });
 
