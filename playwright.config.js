@@ -31,7 +31,8 @@ export default defineConfig({
       slowMo: 1000,
     },
     baseURL: env.storeBaseUrl,
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
   },
 
   projects: [
