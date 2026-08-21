@@ -16,6 +16,7 @@ test('Save event sign-in session', async ({ page }) => {
   test.setTimeout(180000);
 
   // Skip if session already exists. Force a new customer:
+  
   // PowerShell: $env:FORCE_AUTH="1"; npm run auth:event
   test.skip(
     hasSession(env.eventSessionPath) && !process.env.FORCE_AUTH,
