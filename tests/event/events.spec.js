@@ -27,7 +27,7 @@ test('My Events → create look, event, guest and payment', async ({
   await eventsPage.getSizedIfNeeded(ownerCard, suitBuilderPage);
   await eventsPage.addToCartAndCheckout(ownerCard);
 
-  // Scene 5 — invite a guest
+  // Scene 5 — invite a guest and set role and look for them
   await eventsPage.reload();
   await eventsPage.expandEvent(eventCard);
   const guestEmail = await eventsPage.addGuest(eventCard);
