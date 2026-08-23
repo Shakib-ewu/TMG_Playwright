@@ -9,7 +9,7 @@ test('My Events → create look, event, guest and payment', async ({
 
   await eventsPage.gotoFromHeader();
 
-  // Scene 1 — build a look
+  // Scene 1 — build a look by choosing a look
   await eventsPage.openMyLooks();
   await eventsPage.createLook(suitBuilderPage);
 
