@@ -72,10 +72,13 @@ export class SuitBuilderPage {
     await this.beltSwatches().nth(randomIndex(2)).click();
   }
 
+
+  
   async selectRandomShoe() {
-    await this.accordionLocator().nth(5).click();
-    await this.shoeSwatches().nth(randomIndex(2)).click();
+   await this.accordionLocator().nth(4).click();
+     await this.shoeSwatches().nth(randomIndex(2)).click();
   }
+  
 
   async selectRandomTieFromFirstSeven() {
     await this.accordionLocator().nth(2).click();
@@ -181,7 +184,13 @@ export class SuitBuilderPage {
     return this.page.locator('input[placeholder*="Suit" i]');
   }
 
-  saveTheLookButton() {
-    return this.page.getByRole('button', { name: /save the look/i });
-  }
+
+    
+    saveTheLookButton() {
+      return this.page.getByRole('button', {
+        name: 'Save This Look And Plan My Event',
+        exact: true,
+      });
+    }
+    
 }
