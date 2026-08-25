@@ -161,7 +161,7 @@ export class SuitBuilderPage {
     await img.click({ force: true });
   }
 
-  /** Primary purchase CTA — label can be "Buy Swatches" or "Buy Now" depending on quiz state */
+  /** Primary purchase CTA — label can be "Buy Swatches" or "Buy Now" depending on quiz state  Now it is closed*/
   primaryBuyButton() {
     return this.page.locator('button.buyNowBtn').or(
       this.page.getByRole('button', { name: /^(Buy Swatches|Buy Now)$/i })
