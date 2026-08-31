@@ -215,7 +215,7 @@ export class EventsPage {
     };
   }
 
-  /** Opens a custom dropdown and picks a random item, skipping the "Select ..." placeholder */
+  /** Opens a custom dropdown from event page and picks a random item, skipping the "Select ..." placeholder */
   async #pickRandomDropdownItem(dropdown) {
     await dropdown.click();
 
