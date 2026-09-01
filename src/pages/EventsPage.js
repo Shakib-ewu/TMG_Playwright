@@ -162,7 +162,7 @@ export class EventsPage {
     return guestEmail;
   }
 
-  /** Sends the invite and waits for the card to offer payment instead */
+  /** Sends the invite and waits for the card to offer payment instead to the payment */
   async sendInvite(attendeeCard) {
     const action = this.attendeeAction(attendeeCard);
     await action.click();
