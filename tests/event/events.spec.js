@@ -8,8 +8,7 @@ test('My Events → create look, event, guest and payment', async ({
   // Provides the Suit Builder page object.
   suitBuilderPage,
 }) => {
-  // slowMo adds ~1s per action and this flow is long, so the budget has to be generous
-  // Extends the test timeout to accommodate the long checkout workflow.
+ 
   test.setTimeout(420000);
 
   // Opens My Events through the account navigation.
