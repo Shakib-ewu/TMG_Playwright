@@ -3,7 +3,6 @@ import { test } from '../../src/fixtures/test.js';
 
 // Runs the complete event, guest, and payment workflow.
 test('My Events → create look, event, guest and payment', async ({
-  // Provides the My Events page object.
   eventsPage,
   // Provides the Suit Builder page object.
   suitBuilderPage,

@@ -38,7 +38,6 @@ test('Save storefront session', async ({ page }) => {
   await page.goto(env.storeBaseUrl, {
     // Waits for the document HTML to load.
     waitUntil: 'domcontentloaded',
-    // Allows up to one minute for Shopify to respond.
     timeout: 60000,
   });
   // Enters the password if Shopify displayed the password page.
