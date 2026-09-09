@@ -18,12 +18,21 @@ export default defineConfig({
   workers: 1,
   // Generates an HTML report after the run.
   reporter: 'html',
+  // Gives each test room to finish at the slowed-down pace set below.
+  timeout: 180000,
+  // Lets every expect() wait out the sites slower AJAX updates before failing.
+  expect: {
+    timeout: 15000,
+  },
   // Provides defaults inherited by every project.
  use: {
   headless: false,
   viewport: null,
 
+  // Paces every action so locators are easy to follow while watching a run.
+  // Set SLOW_MO=0 for a fast run; CI always runs at full speed.
   launchOptions: {
+    slowMo: process.env.CI ? 0 : Number(process.env.SLOW_MO ?? 500),
     args: [
       '--start-maximized',
       '--disable-blink-features=AutomationControlled',
@@ -34,6 +43,10 @@ export default defineConfig({
       '--disable-gpu',
     ],
   },
+    // Waits longer on a single click or fill before calling it a failure.
+    actionTimeout: 20000,
+    // Page loads on this store can be slow, especially the hosted checkout.
+    navigationTimeout: 60000,
     ignoreHTTPSErrors: true,
     baseURL: env.storeBaseUrl,
     trace: 'retain-on-failure',
