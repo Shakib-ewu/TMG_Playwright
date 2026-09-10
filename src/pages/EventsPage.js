@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { env } from '../config/env.js';
 import { createTestEmail } from '../helpers/mailosaur.js';
-import { randomIndex } from '../helpers/random.js';
+import { randomIndex, uniqueLookName } from '../helpers/random.js';
 
 /**
  * The My Events page: create an event, manage its attendees (the owner plus
@@ -18,7 +18,13 @@ export class EventsPage {
 
   // --- Navigation -----------------------------------------------------------
 
-  /** Opens My Events through the account menu, the way a real user would. */
+  /**
+   * Opens My Events through the account menu, the way a real user would.
+   *
+   * The hover and click are tolerant because the header renders differently
+   * depending on how the page was reached, but the final check is not: if the
+   * tab never appears we are not on My Events and every later step is noise.
+   */
   async gotoFromHeader() {
     if (await this.eventsTab().isVisible({ timeout: 5000 }).catch(() => false)) {
       return;
@@ -27,7 +33,8 @@ export class EventsPage {
     await this.page.waitForLoadState('domcontentloaded', { timeout: 30000 }).catch(() => {});
     await this.page.getByText(/MY ACCOUNT/i).first().hover({ force: true }).catch(() => {});
     await this.page.getByRole('link', { name: /My Events/i }).click({ force: true }).catch(() => {});
-    await expect(this.eventsTab()).toBeVisible({ timeout: 30000 }).catch(() => {});
+
+    await expect(this.eventsTab()).toBeVisible({ timeout: 30000 });
   }
 
   /** Navigates straight to the events URL, e.g. to return after checkout. */
@@ -41,6 +48,111 @@ export class EventsPage {
     await expect(this.page.getByRole('heading', { name: 'My Looks' })).toBeVisible({
       timeout: 30000,
     });
+  }
+
+  // --- Looks ----------------------------------------------------------------
+
+  /** A saved look's card on the My Looks tab, found by the name it was created with. */
+  lookCard(lookName) {
+    return this.page.locator('.srs-event-v2-look-card').filter({ hasText: lookName }).first();
+  }
+
+  /**
+   * Removes a look so repeated runs do not pile them up on the account.
+   * Missing looks are ignored, which keeps this safe to call from teardown.
+   * @returns {Promise<boolean>} true if a look was actually deleted.
+   */
+  async deleteLook(lookName) {
+    await this.openMyLooks();
+
+    const card = this.page
+      .locator('.srs-event-v2-look-card')
+      .filter({ hasText: lookName })
+      .first();
+
+    if (!(await card.count())) {
+      return false;
+    }
+
+    await card.locator('.srs-delete-look-btn').first().click();
+
+    // Deletion is permanent, so the site asks to confirm it in a modal first.
+    const confirm = this.page.locator('#v2-confirm-yes');
+    await expect(confirm).toBeVisible({ timeout: 15000 });
+    await confirm.click();
+
+    await expect(card).toBeHidden({ timeout: 30000 });
+    return true;
+  }
+
+  /**
+   * True when the account has no saved looks. A fresh customer starts empty,
+   * and the role/look dropdowns on an attendee card have nothing to offer until
+   * at least one look exists.
+   */
+  async hasNoLooks() {
+    await this.openMyLooks();
+    return this.page
+      .getByText(/you don't have any look yet/i)
+      .first()
+      .isVisible()
+      .catch(() => false);
+  }
+
+  /**
+   * Opens the Suit Builder in look-creating mode from the My Looks tab.
+   *
+   * The CTA reads "Create First Look" on an empty account and "Create Another
+   * Look" once looks exist, so the wording is matched loosely and the header
+   * link is accepted too. The builder opens with a return_to back to My Looks,
+   * and the customer is already signed in, so no OTP round trip is needed.
+   */
+  async startNewLook() {
+    await this.openMyLooks();
+
+    await this.page
+      .locator('#v2-looks-top-btn')
+      .or(this.page.getByRole('button', { name: /create .*look/i }))
+      .or(this.page.getByRole('link', { name: /create .*look/i }))
+      .first()
+      .click();
+
+    await this.page.waitForLoadState('domcontentloaded', { timeout: 60000 });
+  }
+
+  /**
+   * Builds and saves one look.
+   * @returns {Promise<string>} the name it was saved under.
+   */
+  async createLook(suitBuilderPage, name = uniqueLookName()) {
+    await this.startNewLook();
+    await suitBuilderPage.pickRandomSuitSwatch();
+    await suitBuilderPage.saveLook(name);
+
+    // Saving redirects back to My Events, but the looks grid is populated by a
+    // later request. Reloading is what reliably brings the new card into view.
+    await expect(this.looksTab()).toBeVisible({ timeout: 60000 });
+    await this.page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 });
+    await this.openMyLooks();
+    await expect(this.lookCard(name)).toBeVisible({ timeout: 60000 });
+
+    return name;
+  }
+
+  /**
+   * Creates a look only when the account has none, then leaves the Events tab open.
+   * @returns {Promise<string|null>} the created look's name, or null if looks existed.
+   */
+  async ensureLookExists(suitBuilderPage) {
+    if (!(await this.hasNoLooks())) {
+      await this.eventsTab().click();
+      return null;
+    }
+
+    const name = await this.createLook(suitBuilderPage);
+    // Start the event flow from a clean load rather than from the looks grid.
+    await this.reload();
+    return name;
   }
 
   // --- Locators -------------------------------------------------------------
@@ -106,7 +218,7 @@ export class EventsPage {
       return;
     }
 
-    await eventCard.getByRole('button', { name: 'Toggle event' }).dispatchEvent('click');
+    await eventCard.getByRole('button', { name: 'Toggle event' }).click();
     await expect(guests).toBeVisible({ timeout: 15000 });
   }
 
@@ -139,9 +251,9 @@ export class EventsPage {
     await action.click();
     await expect(this.page.locator('#measurement_age')).toBeVisible({ timeout: 30000 });
 
+    // fillMeasurements() covers every field this modal asks for, jean waist and
+    // the two required photos included.
     await suitBuilderPage.fillMeasurements();
-    // Jean waist is asked for here but not in the Suit Builder's own quiz.
-    await this.page.locator('#measurement_jean_waist').fill('44');
     await suitBuilderPage.submitMeasurementsButton().click();
     return true;
   }
@@ -189,9 +301,11 @@ export class EventsPage {
 
   /** Opens the payment modal from an attendee card and pays through to Shopify checkout. */
   async completePayment(attendeeCard) {
+    // The card must already be offering payment; clicking any other state opens
+    // the wrong modal and the failure surfaces far from its cause.
     const action = this.attendeeAction(attendeeCard);
-    await action.click();
     await expect(action).toHaveText(/Complete Payment/i, { timeout: 60000 });
+    await action.click();
 
     // Re-toggling "Pay in Full" is what populates the modal's amount.
     const payInFull = this.page.getByRole('checkbox', { name: 'Pay in Full', exact: true });
@@ -254,9 +368,15 @@ export class EventsPage {
 
   /** Opens a custom dropdown and picks a real option, skipping the "Select ..." placeholder. */
   async #pickRandomDropdownItem(dropdown) {
-    await dropdown.click();
-
     const items = dropdown.locator('.srs-dropdown-item');
+
+    await dropdown.click();
+    // Picking the previous dropdown can leave this one mid-toggle, so the first
+    // click sometimes closes it again instead of opening it.
+    if (!(await items.first().isVisible().catch(() => false))) {
+      await dropdown.click();
+    }
+
     await expect(items.first()).toBeVisible({ timeout: 10000 });
 
     const choices = (await items.allInnerTexts())

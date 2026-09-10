@@ -9,3 +9,8 @@ export async function pickRandom(items) {
 export function randomIndex(maxExclusive) {
   return Math.floor(Math.random() * maxExclusive);
 }
+
+/** Builds a look name that cannot collide with one the account already has. */
+export function uniqueLookName(prefix = 'E2E Look') {
+  return `${prefix} ${Date.now()}`;
+}

@@ -74,14 +74,29 @@ export class SuitBuilderPage {
     return this.page.locator('.dynamic_price.discounted_price').first();
   }
 
+  /**
+   * The page renders more than one look-name field (one per footer panel), so
+   * the visible one is the field the shopper is actually typing into.
+   */
   lookNameInput() {
-    return this.page.locator('input[placeholder*="Suit" i]');
+    return this.page.locator('input[name="lookName"]:visible').first();
   }
 
+  /**
+   * Save CTA. Its label depends on sign-in state — "Save This Look And Plan My
+   * Event" when signed out, plain "Save The Look" when signed in — so the class
+   * is matched instead of the text.
+   */
   saveTheLookButton() {
     return this.page
-      .getByRole('button', { name: 'Save This Look And Plan My Event', exact: true })
+      .locator('button.saveLookBtn:visible')
+      .or(this.page.getByRole('button', { name: 'Save This Look And Plan My Event', exact: true }))
       .first();
+  }
+
+  /** Validation shown when the chosen look name is already taken. */
+  lookNameError() {
+    return this.page.getByText(/look with that name already exists/i).first();
   }
 
   /** Purchase CTA — the label is "Buy Swatches" or "Buy Now" depending on quiz state. */
@@ -167,6 +182,19 @@ export class SuitBuilderPage {
     await accordions.nth(1).click();
   }
 
+  // --- Looks ----------------------------------------------------------------
+
+  /**
+   * Saves the current configuration as a named look.
+   * Look names must be unique per customer, so callers pass uniqueLookName().
+   * @returns {Promise<string>} the name that was submitted.
+   */
+  async saveLook(name) {
+    await this.lookNameInput().fill(name);
+    await this.saveTheLookButton().click();
+    return name;
+  }
+
   // --- Price ----------------------------------------------------------------
 
   /** Reads the displayed price as a number, dropping currency formatting. */
@@ -188,6 +216,13 @@ export class SuitBuilderPage {
     await this.#selectFitOption("img[alt='Lean icon']");
     await this.#selectFitOption("img[alt='ROUND image']");
     await this.#selectFitOption("img[alt='FLAT image']");
+
+    // Jean waist is asked for by the size chart and the event Get Sized modal,
+    // but not by the Suit Builder fit quiz, so it is filled only when present.
+    const jeanWaist = this.page.locator('#measurement_jean_waist');
+    if (await jeanWaist.count()) {
+      await jeanWaist.fill('44');
+    }
 
     await this.uploadFitPhotos();
   }
@@ -316,11 +351,6 @@ export class SuitBuilderPage {
     }
 
     await this.fillMeasurements();
-
-    const jeanWaist = this.page.locator('#measurement_jean_waist');
-    if (await jeanWaist.count()) {
-      await jeanWaist.fill('44');
-    }
 
     const submit = this.submitMeasurementsButton();
     await expect(submit).toBeEnabled({ timeout: 10000 });
