@@ -74,6 +74,11 @@ export class SuitBuilderPage {
     return this.page.locator('.dynamic_price.discounted_price').first();
   }
 
+  /** The struck-through price shown next to the discounted total (30% off). */
+  regularPriceLocator() {
+    return this.page.locator('.dynamic_price.full_price').first();
+  }
+
   /**
    * The page renders more than one look-name field (one per footer panel), so
    * the visible one is the field the shopper is actually typing into.
@@ -311,6 +316,23 @@ export class SuitBuilderPage {
 
   cartCountBadge() {
     return this.cartDrawer().locator('.ajax-cart__cart-count').first();
+  }
+
+  /** The running subtotal shown at the bottom of the cart drawer. */
+  cartDrawerSubtotalLocator() {
+    return this.cartDrawer().locator('.ajax-cart__subtotal').first();
+  }
+
+  /**
+   * The final charged amount on the hosted Shopify checkout page.
+   *
+   * The checkout app has no stable class names (they are build-hashed), so the
+   * exact-text "Total" label is used as the anchor instead: its own row is the
+   * only place nearby that also holds a "$" amount.
+   */
+  checkoutTotalLocator() {
+    const totalLabel = this.page.getByText('Total', { exact: true });
+    return totalLabel.locator('xpath=../..').getByText(/^\$[\d,.]+$/).last();
   }
 
   /**

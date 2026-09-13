@@ -102,7 +102,7 @@ export class EventsPage {
   /**
    * Opens the Suit Builder in look-creating mode from the My Looks tab.
    *
-   * The CTA reads "Create First Look" on an empty account and "Create Another
+   * The CTA reads "Create First Look" on an empty account and "Create Another look
    * Look" once looks exist, so the wording is matched loosely and the header
    * link is accepted too. The builder opens with a return_to back to My Looks,
    * and the customer is already signed in, so no OTP round trip is needed.
