@@ -31,6 +31,12 @@ export async function loginWithOtp(page, options = {}) {
   const customerEmailInput = page.getByRole('textbox', { name: 'Email' });
   await customerEmailInput.waitFor({ state: 'visible', timeout: 30000 });
   await customerEmailInput.fill(testEmail);
+
+  // Mailosaur's default search window is "received in the last hour," which is
+  // wide enough to match an older mail already sitting in the inbox (an event
+  // invitation, say). Marking the request time and passing it as receivedAfter
+  // guarantees this always waits for the OTP mail this call actually triggers.
+  const requestedAt = new Date();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
 
   // Reaching the code field confirms Shopify accepted the address and sent a mail.
@@ -40,7 +46,7 @@ export async function loginWithOtp(page, options = {}) {
   const message = await mailosaur.messages.get(
     serverId,
     { sentTo: testEmail },
-    { timeout: 60000 }
+    { timeout: 60000, receivedAfter: requestedAt }
   );
   const code = message.text.body.match(/\b\d{6}\b/)?.[0];
   if (!code) {

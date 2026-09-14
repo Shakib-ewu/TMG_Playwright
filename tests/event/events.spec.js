@@ -1,8 +1,9 @@
-import { test } from '../../src/fixtures/test.js';
+import { test, expect } from '../../src/fixtures/test.js';
 
 /**
  * Full owner-and-guest journey:
- * create event → assign a look → get sized → checkout → invite a guest → pay.
+ * create event → assign a look → get sized → checkout → invite a guest →
+ * guest sees the invitation → pay.
  *
  * Each phase is a test.step so a failure names the stage it happened in rather
  * than only pointing at a line deep inside the page object.
@@ -58,15 +59,43 @@ test('My Events → create event, assign look, add guest and pay', async ({
     await eventsPage.expandEvent(eventCard);
   });
 
-  await test.step('Guest: invite by email', async () => {
-    const guestEmail = await eventsPage.addGuest(eventCard);
-    console.log(`Invited guest ${guestEmail}`);
-  });
+  const { guestEmail, role: guestRole, look: guestLook } = await test.step(
+    'Guest: invite by email',
+    async () => {
+      const invited = await eventsPage.addGuest(eventCard);
+      console.log(`Invited guest ${invited.guestEmail} as "${invited.role}" / "${invited.look}"`);
+      return invited;
+    }
+  );
 
   const guestCard = eventsPage.guestCard(eventCard);
 
   await test.step('Guest: send the invite', async () => {
     await eventsPage.sendInvite(guestCard);
+  });
+
+  await test.step('Guest: signs in and sees the invitation', async () => {
+    // A real sign-in as the guest, in its own browser context — not the owner's
+    // browser acting on the guest's behalf, which is what every other guest
+    // step here does. This is the one check that confirms the invitation is
+    // actually visible from the guest's own account.
+    const guestEventsPage = await eventsPage.viewInvitationsAsGuest(guestEmail);
+
+    try {
+      // The card renders the role in upper case via CSS, so the label is
+      // matched case-insensitively rather than assuming a particular case.
+      const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      await expect(guestEventsPage.page.getByText(eventName)).toBeVisible();
+      await expect(
+        guestEventsPage.page.getByText(new RegExp(`Role:\\s*${escape(guestRole)}`, 'i'))
+      ).toBeVisible();
+      await expect(
+        guestEventsPage.page.getByText(new RegExp(`Look:\\s*${escape(guestLook)}`, 'i'))
+      ).toBeVisible();
+      await expect(guestEventsPage.getSizedFromInvitationButton()).toBeVisible();
+    } finally {
+      await guestEventsPage.page.context().close();
+    }
   });
 
   await test.step('Guest: complete payment and reach checkout', async () => {

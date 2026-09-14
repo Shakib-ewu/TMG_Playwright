@@ -1,7 +1,8 @@
 import { expect } from '@playwright/test';
 import { env } from '../config/env.js';
-import { createTestEmail } from '../helpers/mailosaur.js';
+import { createTestEmail, loginWithOtp } from '../helpers/mailosaur.js';
 import { randomIndex, uniqueLookName } from '../helpers/random.js';
+import { unlockStorefront } from '../helpers/storefront.js';
 
 /**
  * The My Events page: create an event, manage its attendees (the owner plus
@@ -260,7 +261,7 @@ export class EventsPage {
 
   /**
    * Adds a guest with a Mailosaur address.
-   * @returns {Promise<string>} the generated guest email.
+   * @returns {Promise<{guestEmail: string, role: string, look: string}>}
    */
   async addGuest(eventCard) {
     await eventCard.locator('.v2-add-guests-btn').first().click();
@@ -268,12 +269,12 @@ export class EventsPage {
     const guestEmail = createTestEmail('guest');
     await this.page.locator('#guestName').fill(`E2E Guest ${Date.now()}`);
     await this.page.locator('#guestEmail').fill(guestEmail);
-    await this.#pickRandomChoice(this.page.locator('#guestRole'));
-    await this.#pickRandomChoice(this.page.locator('#guestLook'));
+    const role = await this.#pickRandomChoice(this.page.locator('#guestRole'));
+    const look = await this.#pickRandomChoice(this.page.locator('#guestLook'));
     await this.page.locator('#addGuestForm button').click();
 
     await expect(this.guestCard(eventCard)).toBeVisible({ timeout: 30000 });
-    return guestEmail;
+    return { guestEmail, role, look };
   }
 
   /** Sends the invite and waits for the card to offer payment instead. */
@@ -281,6 +282,53 @@ export class EventsPage {
     const action = this.attendeeAction(attendeeCard);
     await action.click();
     await expect(action).toHaveText(/Complete Payment/i, { timeout: 60000 });
+  }
+
+  // --- Invitations (guest side) ----------------------------------------------
+
+  invitationsTab() {
+    return this.page.getByRole('tab', { name: 'Invitations' });
+  }
+
+  invitationsHeading() {
+    return this.page.getByRole('heading', { name: 'My Invitations' });
+  }
+
+  /** Shown on an invitation while the guest still owes measurements. */
+  getSizedFromInvitationButton() {
+    return this.page.locator('.v2-inv-get-sized-btn').first();
+  }
+
+  /**
+   * Signs the guest in as themselves, in a brand-new browser context, and
+   * opens their own Invitations tab.
+   *
+   * A bare `browser.newContext()` silently inherits this project's saved owner
+   * session — its storageState is a project-level default applied to every new
+   * context unless one is passed explicitly — so a genuinely empty state is
+   * passed here to make sure the guest is not secretly still the event owner.
+   *
+   * @returns {Promise<EventsPage>} a fresh EventsPage bound to the guest's own
+   *   page. Callers are responsible for closing `guestEventsPage.page.context()`.
+   */
+  async viewInvitationsAsGuest(guestEmail) {
+    const browser = this.page.context().browser();
+    const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const guestPage = await context.newPage();
+
+    await guestPage.goto(env.storeBaseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await unlockStorefront(guestPage);
+    await guestPage.goto(env.storeBaseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+
+    await guestPage.getByText(/MY ACCOUNT/i).first().hover();
+    await guestPage.getByRole('link', { name: /My Events/i }).click();
+    await loginWithOtp(guestPage, { email: guestEmail });
+
+    const guestEventsPage = new EventsPage(guestPage);
+    await guestEventsPage.invitationsTab().click();
+    await expect(guestEventsPage.invitationsHeading()).toBeVisible({ timeout: 30000 });
+
+    return guestEventsPage;
   }
 
   // --- Checkout -------------------------------------------------------------
