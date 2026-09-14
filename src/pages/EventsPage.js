@@ -299,6 +299,11 @@ export class EventsPage {
     return this.page.locator('.v2-inv-get-sized-btn').first();
   }
 
+  /** Shown on an invitation once the guest is sized and can buy their look. */
+  addInvitationToCartButton() {
+    return this.page.locator('.v2-inv-add-cart-btn').first();
+  }
+
   /**
    * Signs the guest in as themselves, in a brand-new browser context, and
    * opens their own Invitations tab.

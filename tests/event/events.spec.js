@@ -1,4 +1,17 @@
 import { test, expect } from '../../src/fixtures/test.js';
+import { SuitBuilderPage } from '../../src/pages/SuitBuilderPage.js';
+import { fillShippingAddress, payWithTestCard, placeOrder } from '../../src/helpers/checkout.js';
+
+/** Real Shopify sandbox order data — no live card or charge is involved. */
+const TEST_SHIPPING = {
+  firstName: 'Edith C.',
+  lastName: 'Dupree',
+  address1: '3623 Calvin Street',
+  city: 'Baltimore',
+  state: 'MD',
+  zip: '21202',
+  phone: '4433685962',
+};
 
 /**
  * Full owner-and-guest journey:
@@ -74,14 +87,16 @@ test('My Events → create event, assign look, add guest and pay', async ({
     await eventsPage.sendInvite(guestCard);
   });
 
-  await test.step('Guest: signs in and sees the invitation', async () => {
-    // A real sign-in as the guest, in its own browser context — not the owner's
-    // browser acting on the guest's behalf, which is what every other guest
-    // step here does. This is the one check that confirms the invitation is
-    // actually visible from the guest's own account.
-    const guestEventsPage = await eventsPage.viewInvitationsAsGuest(guestEmail);
+  // A real sign-in as the guest, in its own browser context — not the owner's
+  // browser acting on the guest's behalf, which is what the shortcut payment
+  // step below does. The context stays open across every guest.* step and is
+  // closed in the finally block once the guest is done with checkout.
+  let guestEventsPage;
 
-    try {
+  try {
+    await test.step('Guest: signs in and sees the invitation', async () => {
+      guestEventsPage = await eventsPage.viewInvitationsAsGuest(guestEmail);
+
       // The card renders the role in upper case via CSS, so the label is
       // matched case-insensitively rather than assuming a particular case.
       const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -93,12 +108,37 @@ test('My Events → create event, assign look, add guest and pay', async ({
         guestEventsPage.page.getByText(new RegExp(`Look:\\s*${escape(guestLook)}`, 'i'))
       ).toBeVisible();
       await expect(guestEventsPage.getSizedFromInvitationButton()).toBeVisible();
-    } finally {
-      await guestEventsPage.page.context().close();
-    }
-  });
+    });
 
-  await test.step('Guest: complete payment and reach checkout', async () => {
-    await eventsPage.completePayment(guestCard);
-  });
+    // A second SuitBuilderPage bound to the guest's own page — the fit quiz
+    // and cart drawer are the same components the owner's flow already uses.
+    const guestSuitBuilderPage = new SuitBuilderPage(guestEventsPage.page);
+
+    await test.step('Guest: gets sized from the invitation', async () => {
+      await guestEventsPage.getSizedFromInvitationButton().click();
+      await guestSuitBuilderPage.measurementModal().waitFor({ state: 'visible', timeout: 30000 });
+      await guestSuitBuilderPage.fillMeasurements();
+      await guestSuitBuilderPage.submitMeasurementsButton().click();
+      await expect(guestEventsPage.addInvitationToCartButton()).toBeVisible({ timeout: 30000 });
+    });
+
+    await test.step('Guest: adds the look to cart and reaches checkout', async () => {
+      await guestEventsPage.addInvitationToCartButton().click();
+      await expect(guestSuitBuilderPage.cartDrawer()).toBeVisible({ timeout: 20000 });
+      await guestSuitBuilderPage.goToCheckout();
+    });
+
+    await test.step('Guest: pays with the sandbox test card and confirms the order', async () => {
+      const guestPage = guestEventsPage.page;
+      await fillShippingAddress(guestPage, TEST_SHIPPING);
+      await payWithTestCard(guestPage);
+      await placeOrder(guestPage);
+
+      await expect(guestPage.getByText(/your order is confirmed/i)).toBeVisible({
+        timeout: 30000,
+      });
+    });
+  } finally {
+    await guestEventsPage?.page.context().close();
+  }
 });
