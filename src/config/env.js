@@ -42,5 +42,13 @@ export const env = {
   eventUrl: withPreviewTheme(eventPath),
   myLooksUrl: withPreviewTheme(myLooksPath),
 
+  // The home page, pinned to the preview theme. Every navigation that
+  // establishes or re-checks a saved session must land here rather than on
+  // storeBaseUrl: Shopify only starts serving the preview theme for the rest
+  // of that browser session once a request has actually carried
+  // preview_theme_id, and once saved, a session that never made that first
+  // request will keep showing the published theme no matter what runs after it.
+  previewStoreUrl: withPreviewTheme(''),
+
   withPreviewTheme,
 };

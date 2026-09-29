@@ -33,9 +33,23 @@ export const test = base.extend({
   page: async ({ page, context }, use, testInfo) => {
     await context.addInitScript(stealthScript());
 
+    // Every run already starts with a brand-new, empty browser profile, so
+    // there is no local disk cache to carry stale content between runs. When
+    // a preview theme still looks out of date, the stale response is coming
+    // over the wire — from Shopify's CDN, not from anything on this machine.
+    // Disabling the cache and asking intermediaries to skip theirs rules that
+    // out completely, so a stale page always points back at the site itself.
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
+    await page.setExtraHTTPHeaders({ 'Cache-Control': 'no-cache', Pragma: 'no-cache' });
+
+    // previewStoreUrl, not a bare '/': a relative goto('/') resolves against
+    // baseURL and drops any query string baseURL might carry, so this has to
+    // be the absolute preview-theme URL to guarantee every test starts on the
+    // configured preview theme rather than the published one.
     // A failed first navigation is tolerated so the unlock check can inspect the result.
     await page
-      .goto('/', { waitUntil: 'domcontentloaded', timeout: 60000 })
+      .goto(env.previewStoreUrl, { waitUntil: 'domcontentloaded', timeout: 60000 })
       .catch(() => {});
 
     // Saved sessions expire, so re-save whenever an unlock was needed.

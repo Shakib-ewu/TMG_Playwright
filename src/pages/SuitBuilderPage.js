@@ -21,7 +21,10 @@ export class SuitBuilderPage {
   }
 
   async goto() {
-    const link = this.page.getByRole('link', { name: 'SUIT BUILDER' });
+    // Some builds of the header carry a second "Suit Builder" nav link in
+    // mixed case alongside the all-caps hero button, so an exact, case-
+    // sensitive match is needed to land on the intended button.
+    const link = this.page.getByRole('link', { name: 'SUIT BUILDER', exact: true });
     await link.scrollIntoViewIfNeeded();
     await link.click();
   }
@@ -33,15 +36,18 @@ export class SuitBuilderPage {
   }
 
   tieWrapperLocator() {
-    return this.page.locator('.suit_item.wrapper.image_options[data-suit-item="Neck_Tie"]');
+    // The current theme lower-cases and camel-cases every data-suit-item
+    // value (Neck_Tie -> neckTie); only the attribute values changed, not
+    // the surrounding classes or markup.
+    return this.page.locator('.suit_item.wrapper.image_options[data-suit-item="neckTie"]');
   }
 
   beltWrapperLocator() {
-    return this.page.locator('.suit_item.wrapper.image_options[data-suit-item="Belt"]');
+    return this.page.locator('.suit_item.wrapper.image_options[data-suit-item="belt"]');
   }
 
   shoeWrapperLocator() {
-    return this.page.locator('.suit_item.wrapper.image_options[data-suit-item="Shoe"]');
+    return this.page.locator('.suit_item.wrapper.image_options[data-suit-item="shoe"]');
   }
 
   beltSwatches() {
@@ -251,7 +257,9 @@ export class SuitBuilderPage {
   async completeFitQuiz() {
     await this.page.getByRole('button', { name: /Get Sized/i }).first().click();
 
-    const emailInput = this.page.locator("input[name='fitQizEmail']");
+    // The form now renders a second, hidden copy of this field elsewhere on
+    // the page, so :visible picks out the one actually in front of the user.
+    const emailInput = this.page.locator("input[name='fitQizEmail']:visible").first();
     await emailInput.waitFor({ state: 'visible', timeout: 20000 });
     await emailInput.fill('test123@example.com');
 
@@ -269,9 +277,13 @@ export class SuitBuilderPage {
     await this.primaryBuyButton().click();
   }
 
-  /** Fit options hide the real input behind a label, so click the label when there is one. */
+  /**
+   * Fit options hide the real input behind a label, so click the label when
+   * there is one. A hidden duplicate of the whole fit quiz also exists
+   * elsewhere on the page, so :visible picks out the image actually shown.
+   */
   async #selectFitOption(imgSelector) {
-    const img = this.page.locator(imgSelector).first();
+    const img = this.page.locator(`${imgSelector}:visible`).first();
     const label = this.page.locator('label').filter({ has: img }).first();
 
     if (await label.count()) {
@@ -367,9 +379,11 @@ export class SuitBuilderPage {
     }
 
     // Email and jean waist are asked for in some variants of this form only.
-    const email = this.page.locator("input[name='fitQizEmail']");
+    // A hidden duplicate of this field also exists elsewhere on the page, so
+    // :visible picks out the one actually in front of the user.
+    const email = this.page.locator("input[name='fitQizEmail']:visible");
     if (await email.count()) {
-      await email.fill('test123@example.com');
+      await email.first().fill('test123@example.com');
     }
 
     await this.fillMeasurements();
@@ -410,5 +424,16 @@ export class SuitBuilderPage {
   async goToCheckout() {
     await this.cartDrawerCheckoutButton().click();
     await this.page.waitForURL(/checkouts?/i, { timeout: 60000 });
+  }
+
+  /**
+   * Empties the cart via Shopify's own AJAX endpoint.
+   *
+   * The saved storefront session reuses the same cart across every run, so
+   * without this, items left behind by one run's Add To Cart tests quietly
+   * pile up and inflate the subtotal every test after it reads.
+   */
+  async clearCart() {
+    await this.page.request.post('/cart/clear.js');
   }
 }

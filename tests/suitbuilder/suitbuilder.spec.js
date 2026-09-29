@@ -4,6 +4,10 @@ import { pickRandom } from '../../src/helpers/random.js';
 
 test.beforeEach(async ({ suitBuilderPage }) => {
   await suitBuilderPage.goto();
+  // The saved storefront session reuses the same cart run after run, so every
+  // test starts from a genuinely empty one rather than accumulating whatever
+  // earlier runs today added.
+  await suitBuilderPage.clearCart();
 });
 
 /**

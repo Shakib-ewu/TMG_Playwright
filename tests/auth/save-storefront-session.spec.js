@@ -22,17 +22,20 @@ test('Save storefront session', async ({ page, browser }) => {
     const stillWorks = await isSessionUsable(
       browser,
       env.storefrontSessionPath,
-      env.storeBaseUrl,
+      env.previewStoreUrl,
       isUnlocked
     );
     test.skip(stillWorks, 'Saved storefront session is under 24 hours old and still unlocked.');
   }
 
-  await page.goto(env.storeBaseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  // previewStoreUrl, not storeBaseUrl: this request has to carry
+  // preview_theme_id at least once for the saved session to show the preview
+  // theme afterward, rather than the published one.
+  await page.goto(env.previewStoreUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
   await unlockStorefront(page);
 
   // Confirm the unlock stuck before saving, otherwise every test lands on /password.
-  await page.goto(env.storeBaseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.goto(env.previewStoreUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
   expect(page.url()).not.toContain('/password');
 
   await page.context().storageState({ path: env.storefrontSessionPath });

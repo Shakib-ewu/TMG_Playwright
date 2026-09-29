@@ -321,9 +321,11 @@ export class EventsPage {
     const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
     const guestPage = await context.newPage();
 
-    await guestPage.goto(env.storeBaseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    // This context starts from a genuinely empty storageState, so it too needs
+    // its own preview_theme_id request before it will show the preview theme.
+    await guestPage.goto(env.previewStoreUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await unlockStorefront(guestPage);
-    await guestPage.goto(env.storeBaseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await guestPage.goto(env.previewStoreUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
     await guestPage.getByText(/MY ACCOUNT/i).first().hover();
     await guestPage.getByRole('link', { name: /My Events/i }).click();

@@ -33,10 +33,13 @@ test('Save event sign-in session', async ({ page, browser }) => {
     test.skip(stillWorks, 'Saved event session is under 24 hours old and still signs in.');
   }
 
-  await page.goto(env.storeBaseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  // previewStoreUrl, not storeBaseUrl: this request has to carry
+  // preview_theme_id at least once for the saved session to show the preview
+  // theme afterward, rather than the published one.
+  await page.goto(env.previewStoreUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
   await unlockStorefront(page);
   // Reload after unlocking so the account menu is present.
-  await page.goto(env.storeBaseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.goto(env.previewStoreUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
   await page.getByText(/MY ACCOUNT/i).first().hover();
   await page.getByRole('link', { name: /My Events/i }).click();
