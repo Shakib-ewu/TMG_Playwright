@@ -92,6 +92,14 @@ test('Discounted price carries through to the cart and checkout', async ({
 }) => {
   test.setTimeout(300000);
 
+  // A snapshot straight from the cart API, not the drawer: an Add To Cart
+  // request from an earlier test in this run can still be in flight when
+  // that test ends, and land in this same shared cart moments later. Reading
+  // this baseline right before adding anything, and checking the increase
+  // rather than the absolute total, keeps the assertions below correct
+  // regardless of when that stray pollution actually arrives.
+  const cartTotalBefore = await suitBuilderPage.getCartTotal();
+
   await suitBuilderPage.pickRandomSuitSwatch();
 
   const regularPrice = await suitBuilderPage.getPriceValue(suitBuilderPage.regularPriceLocator());
@@ -107,7 +115,7 @@ test('Discounted price carries through to the cart and checkout', async ({
     const cartSubtotal = await suitBuilderPage.getPriceValue(
       suitBuilderPage.cartDrawerSubtotalLocator()
     );
-    expect(cartSubtotal).toBe(discountedPrice);
+    expect(cartSubtotal - cartTotalBefore).toBe(discountedPrice);
   });
 
   await test.step('Checkout total matches the discounted total, not the regular price', async () => {
@@ -116,7 +124,7 @@ test('Discounted price carries through to the cart and checkout', async ({
     const checkoutTotal = await suitBuilderPage.getPriceValue(
       suitBuilderPage.checkoutTotalLocator()
     );
-    expect(checkoutTotal).toBe(discountedPrice);
+    expect(checkoutTotal - cartTotalBefore).toBe(discountedPrice);
   });
 });
 

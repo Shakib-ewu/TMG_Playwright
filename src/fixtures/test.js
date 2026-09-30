@@ -1,5 +1,6 @@
 import { test as base, expect } from '@playwright/test';
 import { EventsPage } from '../pages/EventsPage.js';
+import { ShopPage } from '../pages/ShopPage.js';
 import { SuitBuilderPage } from '../pages/SuitBuilderPage.js';
 import { unlockStorefront } from '../helpers/storefront.js';
 import { env } from '../config/env.js';
@@ -67,6 +68,10 @@ export const test = base.extend({
 
   eventsPage: async ({ page }, use) => {
     await use(new EventsPage(page));
+  },
+
+  shopPage: async ({ page }, use) => {
+    await use(new ShopPage(page));
   },
 });
 

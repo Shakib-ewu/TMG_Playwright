@@ -436,4 +436,18 @@ export class SuitBuilderPage {
   async clearCart() {
     await this.page.request.post('/cart/clear.js');
   }
+
+  /**
+   * Reads the cart's current total (in dollars) straight from Shopify's own
+   * cart API, bypassing the drawer entirely.
+   *
+   * Useful as a before/after baseline: an Add To Cart request from an earlier
+   * test can still be in flight when that test ends, and land in this same
+   * shared cart moments later — a delta against this reading stays correct
+   * regardless of whatever pollution shows up before or after it.
+   */
+  async getCartTotal() {
+    const cart = await this.page.request.get('/cart.js').then((res) => res.json());
+    return cart.total_price / 100;
+  }
 }
