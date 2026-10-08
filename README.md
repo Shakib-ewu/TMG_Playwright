@@ -1,15 +1,33 @@
-# The Modern Groom — E2E Test Suite
+# The Modern Groom — End-to-End Test Suite
 
-Playwright end-to-end tests for The Modern Groom Shopify store, covering the
-**Suit Builder** and the **My Events** party-management flow.
+This project tests the TMG online store. The store runs on Shopify. The tests
+use Playwright. The tests run in a real browser. They click real buttons on a
+real preview store. This document tells you what the tests do, how the code
+is organized, and how to run the tests.
 
-## Quick start
+## 1. What this project covers
+
+The suite tests three parts of the store:
+
+- **Suit Builder** — the page where a shopper picks a suit, a shirt, a tie, a
+  belt, shoes, and socks, and adds the look to the cart.
+- **Shop menu** — the normal product pages for each clothing category, found
+  through the SHOP dropdown in the header.
+- **My Events** — the page where a customer plans a wedding party. The
+  customer creates an event, picks a role and a look, gets sized, invites
+  guests, and pays. A guest can sign in and see their own invitation.
+
+The tests run against a live Shopify preview store. No code in this repo
+changes the store. The tests only click, type, and read the page, the same
+way a real shopper would.
+
+## 2. Quick start
 
 ```bash
 npm install
 npx playwright install
 
-cp .env.example .env    # then fill in the values
+cp .env.example .env    # then fill in the values — see section 6
 
 npm run auth:storefront # unlock the store, save the session (run once)
 npm run auth:event      # sign a customer in via OTP, save the session (run once)
@@ -17,38 +35,182 @@ npm run auth:event      # sign a customer in via OTP, save the session (run once
 npm test                # run everything
 ```
 
-## Project structure
+A saved session lasts 24 hours. After that, the next run makes a new one by
+itself. You do not need to run the two `auth:*` commands by hand every day.
+
+## 3. Project structure
 
 ```
 src/
-  config/env.js          All environment variables and derived URLs. Start here.
-  fixtures/test.js       Custom `test` — unlocks the store, injects page objects.
+  config/
+    env.js              Reads .env and builds every URL the tests use.
+  fixtures/
+    test.js             The shared `test` function. Unlocks the store and
+                         gives every test ready-made page objects.
+    images/              Two sample photos the size form needs to upload.
   helpers/
-    mailosaur.js         Disposable inboxes and the email OTP login.
-    storefront.js        Shopify storefront password unlock.
-    session.js           Checks whether a saved session file is usable.
-    random.js            Random pick helpers used for option selection.
+    mailosaur.js         Disposable email inboxes and the OTP sign-in flow.
+    storefront.js        Enters the store password when asked.
+    session.js           Checks whether a saved session file is still good.
+    random.js             Small helpers: pick a random item, build a unique name.
+    checkout.js          Fills the Shopify checkout form and pays with a test card.
   pages/
-    SuitBuilderPage.js   Suit Builder: swatches, pricing, fit quiz.
-    EventsPage.js        My Events: events, attendees, sizing, payment.
+    SuitBuilderPage.js    The Suit Builder page, the cart drawer, and the size form.
+    EventsPage.js         My Events: events, attendees, looks, guests, payment.
+    ShopPage.js            The SHOP dropdown menu and product pages.
 
 tests/
-  auth/                  Setup specs that produce the saved sessions.
-  suitbuilder/           Suit Builder tests.
-  event/                 The full My Events journey.
+  auth/                  Two setup specs. They save the sessions above.
+  suitbuilder/            Suit Builder tests and SHOP-menu tests.
+  event/                 The My Events journey and the My Looks tests.
 
-auth/                    Saved sessions (git-ignored).
-playwright.config.js     Projects, timeouts, and browser settings.
+auth/                    Saved sessions. Git ignores this folder's contents.
+playwright.config.js     Test projects, timeouts, and browser settings.
+.github/workflows/        The GitHub Actions file that runs the tests on each push.
 ```
 
-The layout is a standard **Page Object Model**: tests describe *what* is being
-checked, page objects hold *how* to interact with the site, and helpers cover
-everything that is not page-specific.
+The code follows the **Page Object Model**. A test file says *what* to check.
+A page object says *how* to find and click things on one page. A helper does
+one small, reusable job that is not tied to one page.
 
-## How a test run works
+## 4. The page objects
 
-Tests never log in themselves. Two setup projects capture browser sessions once,
-and the real test projects reuse them:
+### 4.1 `SuitBuilderPage.js`
+
+This file covers the Suit Builder page, and parts that the page shares with
+other pages: the cart drawer and the size form.
+
+Main jobs:
+
+- Pick a suit, a tie, a belt, or shoes. Accessory sections sit inside
+  accordions. The code opens an accordion **only if it is closed** — a click
+  on an open accordion closes it instead.
+- Read the price. The page shows two numbers: the full price with a line
+  through it, and the discount price next to it (30% off).
+- Fill and submit the size form (`fillMeasurements()`). The same form appears
+  in three places: the Suit Builder's own fit quiz, the signed-out size chart
+  at Add To Cart, and the Get Sized step inside My Events. One method fills
+  all three.
+- Upload the two required photos for the size form.
+- Save the current picks as a named look.
+- Add the current picks to the cart, and go to the hosted checkout.
+- `clearCart()` empties the cart through Shopify's own API. `getCartTotal()`
+  reads the cart's real total the same way. Both exist because every test run
+  shares one customer account and one cart — see section 7.
+
+### 4.2 `EventsPage.js`
+
+This file covers the My Events page: creating an event, the owner's own
+card, invited guests, and the guest's own Invitations tab.
+
+Main jobs:
+
+- Create an event with a random type and a valid future date.
+- Open an event card. Assign a random role and a random look to an attendee.
+- Get an attendee sized, if they are not sized yet.
+- Add a guest with a new email address, generated by Mailosaur.
+- Send the invite, then complete payment on the owner's side.
+- `viewInvitationsAsGuest()` signs the guest in **as the guest**, in a brand
+  new browser context. This is not the owner's browser acting for the guest.
+  It is a real, separate sign-in, so the guest's own Invitations tab, sizing,
+  cart, and checkout are all tested for real.
+- Manage saved looks: create one, delete one, check whether the account has
+  any.
+
+### 4.3 `ShopPage.js`
+
+This file covers the SHOP dropdown menu and the plain product pages behind
+it (not the Suit Builder page).
+
+Main jobs:
+
+- Open the SHOP dropdown and click one category link.
+- Open the first real product in a collection. Every collection page also
+  shows a garment bag and a placeholder item. The code skips both and picks
+  a real product.
+- Find the Add To Cart button and the Build Your Look button. Every category
+  has both, except Shirts, which has Build Your Look only.
+
+## 5. The helpers
+
+| File | Job |
+| --- | --- |
+| `mailosaur.js` | Makes a disposable email address. Reads the 6-digit sign-in code from that inbox and finishes the Shopify OTP sign-in. |
+| `storefront.js` | Enters the store password when the site shows the password page. |
+| `session.js` | Checks whether a saved session file exists, is under 24 hours old, and still works against the live site. |
+| `random.js` | Three small, shared helpers: click a random item from a list, pick a random index, and build a name that will not clash with one used before. |
+| `checkout.js` | Fills the shipping address on Shopify's hosted checkout, fills the sandbox test card, and clicks Pay now. |
+
+## 6. Configuration
+
+Nothing in the tests is hard-coded. Every URL, path, and credential comes
+from `.env` through `src/config/env.js`.
+
+| Variable | Purpose |
+| --- | --- |
+| `STORE_BASE_URL` | The store to test. |
+| `STORE_PASSWORD` | The storefront password-page value. |
+| `PREVIEW_THEME_ID` | The Shopify preview theme to pin every page to. |
+| `EVENT_PATH` / `MY_LOOKS_PATH` | The paths for My Events and My Looks. |
+| `MAILOSAUR_API_KEY` / `MAILOSAUR_SERVER_ID` | Used to read the sign-in code emails. |
+| `CUSTOMER_EMAIL` | Optional. A fixed inbox for the event session. Leave it blank to make a new one each time a session is rebuilt. |
+
+`env.js` also builds `previewStoreUrl`: the home page, with the preview
+theme id already attached. Every place that signs a session in uses this
+URL, and only this URL, for its first request. See section 9 for why.
+
+## 7. Why tests clear the cart first
+
+Every project in `playwright.config.js` reuses the **same saved session**,
+so every test run shares the same Shopify customer and the same cart. If one
+test adds a suit to the cart and the next test does not clear it first, the
+second test's price checks come out wrong — not because the site is broken,
+but because the cart already had something in it.
+
+Two defenses are in place:
+
+1. `clearCart()` runs in `beforeEach` in both Suit Builder spec files. Every
+   test starts from a cart with nothing in it.
+2. Even with that, a slow Add To Cart request from one test can still finish
+   **after** that test has already ended, and land in the cart just after
+   the next test's `clearCart()` call. The price test in `suitbuilder.spec.js`
+   defends against this too: it reads the cart's total right before it adds
+   anything, then checks the **increase** in the total, not the absolute
+   number. This stays correct no matter when a stray leftover request lands.
+
+## 8. Known site problems found during testing
+
+- **Look name and look limit.** The account could only save a small, fixed
+  number of looks, one for each of the 7 suits. Saving one more look, even
+  with a brand-new name, did nothing: no new look, no error message. The
+  limit may be "one look per suit," but this needs confirming with the
+  product owner. See the skipped test in `tests/event/looks.spec.js`.
+- **Empty look name.** It is not clear what the site should do when a
+  shopper saves a look with no name typed in. The product owner should
+  confirm the correct result.
+- **A Mailosaur API key and a store password are in the git history, and
+  this repo is public.** An early commit added a `.env` file by mistake. A
+  later commit removed it from tracking, but the old values are still
+  readable in the git history, and anyone can read them right now. The
+  Mailosaur key must be rotated. The store password should change too.
+
+Two other problems were found and reported earlier in this project, on a
+store used before the current one configured in `.env`:
+
+- The cart and the checkout showed the full price, not the 30%-off price.
+- On the Suit Builder page, Add To Cart did nothing once the size form closed.
+
+Both of these pass today against the store configured in `.env` now. This
+may mean the team fixed them, or it may mean the current store's theme never
+had the same problem. Either way, this is worth one more check by the team,
+not an assumption that both are fixed for
+good.
+
+## 9. How a session is built and reused
+
+No test signs in by hand, every time. Two setup specs build a session once
+and save it to a file. The real tests load that file and start already
+signed in.
 
 ```
 setup-storefront ──> auth/session.storefront.json ──> suitbuilder
@@ -57,46 +219,126 @@ setup-storefront ──> auth/session.storefront.json ──> suitbuilder
 ```
 
 - **setup-storefront** enters the store password and saves the cookie.
-- **setup-event** signs in a fresh customer with an email OTP read from Mailosaur.
+- **setup-event** depends on setup-storefront, then signs in a customer with
+  a one-time email code read from Mailosaur, and saves that session.
 
-Both setup specs **skip if a session file already exists**. To force a refresh:
+A saved session is reused for **24 hours**. After that, the next run skips
+the reuse, signs in again, and saves a fresh file. Age is not the only
+check: before reusing a session, the setup spec also opens it in a
+throw-away browser and confirms the site still accepts it. A session the
+server killed early gets rebuilt too, not just an old one.
+
+Both setup specs **skip themselves** when a session is still fresh and still
+works, so running them does not slow down a normal day. To force a rebuild
+right now:
 
 ```powershell
 $env:FORCE_AUTH="1"; npm run auth:event
 ```
 
-Sessions expire. The `page` fixture in `src/fixtures/test.js` notices when the
-store has locked again, re-unlocks it, and re-saves the session mid-run.
+**Why every setup navigation uses `previewStoreUrl`, not the bare store
+URL.** Shopify only starts serving the preview theme for the rest of a
+browser session once one request has carried `preview_theme_id` in its
+query string. A session built from a request with no query string keeps
+showing the **published** theme for its whole life, no matter what runs
+after it. Every place that builds or re-checks a session — both setup
+specs, the shared test fixture, and the guest's own sign-in inside
+`EventsPage.js` — uses `env.previewStoreUrl` for this reason.
 
-## Commands
+## 10. Commands
 
 | Command | What it does |
 | --- | --- |
-| `npm test` | Runs every project |
-| `npm run test:suitbuilder` | Suit Builder tests only |
-| `npm run test:event` | The My Events journey only |
-| `npm run auth:storefront` | Saves the storefront-password session |
-| `npm run auth:event` | Saves the signed-in customer session |
-| `npm run report` | Opens the last HTML report |
+| `npm test` | Runs every project. |
+| `npm run test:suitbuilder` | Runs every spec in `tests/suitbuilder/`. |
+| `npm run test:event` | Runs every spec in `tests/event/`. |
+| `npm run auth:storefront` | Saves the storefront-password session. |
+| `npm run auth:event` | Saves the signed-in customer session. |
+| `npm run report` | Opens the last HTML report. |
 
-## Configuration
+To run one file only, add its path:
 
-Everything is read from `.env` through `src/config/env.js` — no URLs or
-credentials are hard-coded in tests.
+```bash
+npx playwright test --project=suitbuilder tests/suitbuilder/suitbuilder.spec.js
+```
 
-| Variable | Purpose |
-| --- | --- |
-| `STORE_BASE_URL` | Store to test against |
-| `STORE_PASSWORD` | Storefront password-page value |
-| `PREVIEW_THEME_ID` | Shopify preview theme to pin |
-| `EVENT_PATH` / `MY_LOOKS_PATH` | Page paths for events and saved looks |
-| `MAILOSAUR_API_KEY` / `MAILOSAUR_SERVER_ID` | Reading OTP emails |
-| `CUSTOMER_EMAIL` | Optional fixed inbox; blank generates one per run |
+## 11. What each test file checks
 
-## Writing a new test
+### `tests/auth/save-storefront-session.spec.js`
 
-Import the shared fixture rather than `@playwright/test` directly — it delivers
-an unlocked page plus the page objects:
+Enters the store password and saves the unlock cookie. Skips itself if a
+good session already exists.
+
+### `tests/auth/save-event-session.spec.js`
+
+Signs a new customer in with a one-time email code and saves that session.
+Skips itself if a good session already exists.
+
+### `tests/suitbuilder/suitbuilder.spec.js`
+
+- Picks a suit, a tie, a belt, and shoes, one at a time, and checks that each
+  one lands in the cart.
+- Checks that the total price goes up as items are added.
+- Checks that Save Look and Add To Cart both appear once something is
+  picked.
+- Adds every item in one pass and reaches the Shopify checkout page
+  ("Happy path").
+- Checks that the 30%-off discount price, not the full price, is what shows
+  in the cart drawer and at checkout.
+- Two tests are `test.skip`, with a comment above each one naming the site
+  behavior they are waiting on.
+
+### `tests/suitbuilder/shop-categories.spec.js`
+
+- Opens the SHOP dropdown, goes to Suits and Tuxedos, adds a suit to the
+  cart, fills in the size form, checks the cart drawer opens, goes to
+  checkout, then goes back.
+- Loops through every other category — Neck Ties, Bow Ties, Pocket Squares,
+  Shoes, Socks, Belts — adds one product from each to the cart, and checks
+  out. None of these ask for a size.
+- Checks that Shirts has no Add To Cart button at all, only Build Your Look,
+  and that clicking it lands on the Suit Builder page.
+
+### `tests/event/events.spec.js`
+
+One long test that covers the full owner-and-guest journey:
+
+1. Open My Events. Make sure the account has a saved look (make one if not).
+2. Create an event with a random type and date.
+3. As the owner: pick a role and a look, get sized if needed, add to cart,
+   and reach checkout.
+4. Invite a guest with a new email address. Send the invite.
+5. **Sign in as the guest, for real**, in a separate browser. Check the
+   invitation shows the right event, role, and look.
+6. As the guest: get sized, add the look to cart, go to checkout, fill in a
+   real shipping address, pay with Shopify's sandbox test card, and check
+   the order is confirmed.
+
+### `tests/event/looks.spec.js`
+
+Creates a look, checks it shows on the My Looks tab, then deletes it. This
+test is `test.skip` — see the look-limit problem in section 8.
+
+## 12. What the browser looks like while testing
+
+The browser runs **headed** — a real window, not hidden — with a small
+delay between actions. This way, a person watching the run can follow each
+click. `slowMo` defaults to 500 milliseconds, and CI always runs at full
+speed instead:
+
+```powershell
+# Fast run on your own machine:
+$env:SLOW_MO="0"; npm test
+```
+
+Tests run with `workers: 1`. Every test shares one customer account and one
+cart, so running two tests at once would make them interfere with each
+other.
+
+## 13. Writing a new test
+
+Import the shared fixture, not `@playwright/test` directly. It gives every
+test an already-unlocked page, plus the three page objects:
 
 ```js
 import { test, expect } from '../../src/fixtures/test.js';
@@ -107,15 +349,26 @@ test('Select a suit', async ({ suitBuilderPage }) => {
 });
 ```
 
-Put new selectors on the page object, not in the test.
+Put new selectors on a page object, not inside the test file. If a page
+object does not exist yet for the page you need, add one under `src/pages/`
+and register it in `src/fixtures/test.js`, the same way `shopPage` was
+added.
 
-## Notes for maintainers
+## 14. Notes for maintainers
 
-- **`workers: 1`** — tests share one customer account, so they cannot run in
-  parallel against the same store.
-- **Headed by default** (`headless: false` in the config) along with stealth
-  browser flags, because the store fronts bot protection.
-- Suit Builder accordions are addressed **by position**: `2` = tie, `3` = belt,
-  `4` = shoe. If the site reorders them, those indexes need updating.
-- A few tests are `test.skip`-ed with a comment naming the site behavior they
-  are waiting on.
+- **Accordion and attribute names can change with the theme.** The Suit
+  Builder's `data-suit-item` attribute values changed from `Neck_Tie` /
+  `Belt` / `Shoe` to `neckTie` / `belt` / `shoe` when the store moved to its
+  current theme. If selectors suddenly stop matching after a theme update,
+  check the real attribute names again before assuming the test is wrong.
+- **The same text can appear twice, once hidden.** More than one field on
+  this site is duplicated in the DOM — a desktop copy and a mobile copy, or
+  a visible copy and a hidden one. Several locators in this project already
+  add `:visible` for this reason. A new locator that matches more than one
+  element should check for the same thing before picking `.first()` at
+  random.
+- **The size form always needs `completeSizeChartIfShown()` or
+  `completeFitQuiz()`**, not a bare `fillMeasurements()` call. Only those two
+  wrapper methods also fill the email field the signed-out form asks for.
+- Every change in this project was checked against the live store before
+  being treated as done. Nothing here is based on reading the code alone.
